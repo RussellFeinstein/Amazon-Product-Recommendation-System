@@ -1,3 +1,5 @@
+import os
+import sys
 from pyspark.sql import SparkSession
 from utils.config import parse_args, NUMBER_OF_WORDS, SENTIMENT_OUTPUT_DIR, SENTIMENT_TOP_N
 from utils.recommendation import load_review_rdd, build_tfidf_vectors, get_top_k_recommendations
@@ -6,6 +8,9 @@ from utils.sentiment import run_sentiment_pipeline
 
 def main():
     reviews_file, product_id = parse_args()
+
+    if not os.path.exists(reviews_file):
+        sys.exit(f"Error: reviews file not found: {reviews_file}")
 
     spark = SparkSession.builder.appName('amazon-review-analysis').getOrCreate()
     sc = spark.sparkContext
