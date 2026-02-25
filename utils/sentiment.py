@@ -103,7 +103,7 @@ def run_sentiment_pipeline(spark, reviews_file, output_dir, top_n):
         .map(join_tokens)
     )
 
-    sentiment_rdd = tokens_rdd.map(extract_noun_phrases).map(score_sentiment)
+    sentiment_rdd = tokens_rdd.map(extract_noun_phrases).map(score_sentiment).cache()
 
     pos_rdd = sentiment_rdd.flatMap(lambda lst: lst).filter(lambda y: y[1] == 'Positive')
     neg_rdd = sentiment_rdd.flatMap(lambda lst: lst).filter(lambda y: y[1] == 'Negative')
@@ -112,3 +112,4 @@ def run_sentiment_pipeline(spark, reviews_file, output_dir, top_n):
     write_top_keywords_csv(spark, pos_rdd, output_dir, 'positive', top_n)
     write_top_keywords_csv(spark, neg_rdd, output_dir, 'negative', top_n)
     write_top_keywords_csv(spark, neutral_rdd, output_dir, 'neutral', top_n)
+    sentiment_rdd.unpersist()
