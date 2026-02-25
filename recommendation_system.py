@@ -30,8 +30,7 @@ def cosSim (x,y):
 def getPrediction(productID, k, tfidfVectors):
 
   # Get the tf * idf array for the input productID
-  # inputTFIDF = tfidfVectors.filter(lambda x: x[0] == productID).collect()
-  inputTFIDF = tfidfVectors.takeSample(False, 1, seed=0)
+  inputTFIDF = tfidfVectors.filter(lambda x: x[0] == productID).collect()
 
   # Get the distance from the input text string to all database documents,
   # using cosine similarity

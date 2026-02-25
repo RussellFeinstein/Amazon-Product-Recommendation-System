@@ -3,9 +3,7 @@ import nltk
 from nltk.stem import WordNetLemmatizer
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 import string
-
-def
-  from nltk.corpus import stopwords
+from nltk.corpus import stopwords
 
 def removeStopWordsFunct(x):
     stop_words=set(stopwords.words('english'))
