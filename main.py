@@ -11,7 +11,7 @@ from utils.sentiment import run_sentiment_pipeline
 
 
 def main():
-    reviews_file, product_id = parse_args()
+    reviews_file, product_ids = parse_args()
 
     if not os.path.exists(reviews_file):
         sys.exit(f"Error: reviews file not found: {reviews_file}")
@@ -23,10 +23,11 @@ def main():
     # Recommendation pipeline
     id_and_terms, num_docs = load_review_rdd(df)
     tfidf_vectors = build_tfidf_vectors(sc, id_and_terms, num_docs, NUMBER_OF_WORDS)
-    top_k, queried_id = get_top_k_recommendations(product_id, 20, tfidf_vectors)
-    logger.info(f'Product recommendations for: {queried_id}')
-    for pid in top_k:
-        logger.info(f'  {pid}')
+    for product_id in product_ids:
+        top_k, queried_id = get_top_k_recommendations(product_id, 20, tfidf_vectors)
+        logger.info(f'Product recommendations for: {queried_id}')
+        for pid in top_k:
+            logger.info(f'  {pid}')
 
     # Sentiment pipeline
     run_sentiment_pipeline(spark, df, SENTIMENT_OUTPUT_DIR, SENTIMENT_TOP_N)
