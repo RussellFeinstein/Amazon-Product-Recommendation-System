@@ -34,6 +34,8 @@ def cosine_similarity(vec_a, vec_b):
 
 
 def build_tfidf_vectors(sc, id_and_terms, num_docs, num_words):
+    id_and_terms.cache()
+
     # Build vocabulary: top num_words terms by corpus frequency
     term_one_pairs = id_and_terms.flatMap(lambda x: x[1]).map(lambda x: (x, 1))
     all_counts = term_one_pairs.reduceByKey(lambda x, y: x + y)
@@ -49,6 +51,7 @@ def build_tfidf_vectors(sc, id_and_terms, num_docs, num_words):
         doc_pos_pairs
         .reduceByKey(lambda x, y: x + y)
         .map(lambda x: (x[0], sorted(x[1])))
+        .cache()
     )
 
     term_freq = terms_in_each_doc.map(lambda x: (x[0], build_tf_array(x[1], num_words)))
@@ -56,6 +59,9 @@ def build_tfidf_vectors(sc, id_and_terms, num_docs, num_words):
 
     # Build IDF and broadcast to avoid per-task serialisation
     doc_freq = one_hot.reduce(lambda x, y: ('', np.add(x[1], y[1])))[1]
+    terms_in_each_doc.unpersist()
+    id_and_terms.unpersist()
+
     inverse_doc_freq = np.log(np.divide(np.full(num_words, num_docs), doc_freq))
     idf_bc = sc.broadcast(inverse_doc_freq)
 
