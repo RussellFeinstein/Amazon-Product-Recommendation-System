@@ -65,6 +65,8 @@ def build_tfidf_vectors(sc, id_and_terms, num_docs, num_words):
 
 def get_top_k_recommendations(product_id, k, tfidf_vectors):
     input_tfidf = tfidf_vectors.filter(lambda x: x[0] == product_id).collect()
+    if not input_tfidf:
+        raise ValueError(f"Product ID '{product_id}' not found in dataset")
     distances = tfidf_vectors.map(lambda x: (x[0], cosine_similarity(x[1], input_tfidf[0][1])))
     top_k = distances.top(k, lambda x: x[1])[1:]
     top_k_ids = list(zip(*top_k))[0]
