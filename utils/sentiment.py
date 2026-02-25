@@ -88,9 +88,7 @@ def write_top_keywords_csv(spark, sentiment_rdd, output_dir, label, top_n):
     )
 
 
-def run_sentiment_pipeline(spark, reviews_file, output_dir, top_n):
-    df = spark.read.json(reviews_file)
-
+def run_sentiment_pipeline(spark, df, output_dir, top_n):
     reviews_rdd = df.select('reviewText').rdd.flatMap(lambda x: x)
     tokens_rdd = (
         reviews_rdd

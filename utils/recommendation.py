@@ -2,8 +2,8 @@ import re
 import numpy as np
 
 
-def load_review_rdd(spark, reviews_file):
-    all_reviews = spark.read.json(reviews_file).rdd
+def load_review_rdd(df):
+    all_reviews = df.rdd
     num_docs = all_reviews.count()
 
     id_and_text = all_reviews.map(lambda x: (x['asin'], x['reviewText']))

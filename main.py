@@ -14,9 +14,10 @@ def main():
 
     spark = SparkSession.builder.appName('amazon-review-analysis').getOrCreate()
     sc = spark.sparkContext
+    df = spark.read.json(reviews_file)
 
     # Recommendation pipeline
-    id_and_terms, num_docs = load_review_rdd(spark, reviews_file)
+    id_and_terms, num_docs = load_review_rdd(df)
     tfidf_vectors = build_tfidf_vectors(sc, id_and_terms, num_docs, NUMBER_OF_WORDS)
     top_k, queried_id = get_top_k_recommendations(product_id, 20, tfidf_vectors)
     print(f'Product recommendations for: {queried_id}')
@@ -24,7 +25,7 @@ def main():
         print(pid)
 
     # Sentiment pipeline
-    run_sentiment_pipeline(spark, reviews_file, SENTIMENT_OUTPUT_DIR, SENTIMENT_TOP_N)
+    run_sentiment_pipeline(spark, df, SENTIMENT_OUTPUT_DIR, SENTIMENT_TOP_N)
 
     spark.stop()
 
