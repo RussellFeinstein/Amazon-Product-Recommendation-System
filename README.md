@@ -10,6 +10,32 @@ Given an Amazon product review dataset (JSON):
 
 2. **Sentiment analysis** -- Extracts noun phrases from reviews, scores them with VADER, and outputs the top keywords for positive, negative, and neutral sentiment as CSVs.
 
+## NLP Methodology
+
+### Document Retrieval via TF-IDF
+
+The recommendation pipeline constructs a **document-term matrix** from review text aggregated per product:
+
+1. **Vocabulary construction** -- Selects the top 1,000 terms by corpus frequency from the full review corpus
+2. **Term Frequency (TF)** -- Computes normalized term-frequency vectors per product (`bincount / sum`)
+3. **Inverse Document Frequency (IDF)** -- Computes `log(N / df)` document-frequency weighting across all products. The IDF vector is **broadcast** to all Spark workers to avoid per-task serialization overhead.
+4. **TF-IDF vectors** -- Element-wise multiplication of TF and IDF vectors, producing sparse representations in a high-dimensional vector space
+5. **Cosine similarity** -- Computes `dot(a, b) / (||a|| * ||b||)` between the query product's TF-IDF vector and all other products, returning the top-K most similar
+
+### Sentiment Analysis via Noun Phrase Extraction
+
+The sentiment pipeline applies linguistic analysis to extract opinion-bearing phrases:
+
+1. **Sentence tokenization and normalization** -- Splits reviews into sentences, tokenizes, removes stop words, strips punctuation, and applies WordNet lemmatization
+2. **POS tagging** -- Tags tokens using NLTK's averaged perceptron tagger
+3. **Noun phrase chunking** -- Applies a regex grammar (`{<NN.*|JJ>*<NN.*>}`) to extract noun phrases (nouns optionally preceded by adjectives)
+4. **VADER sentiment scoring** -- Scores each extracted noun phrase using VADER's lexicon-based compound sentiment score, classifying as Positive (> 0), Negative (< 0), or Neutral (= 0)
+5. **Frequency aggregation** -- Aggregates keyword frequencies per sentiment label and writes the top-N to CSV via Spark SQL
+
+### Dataset
+
+This pipeline was developed and tested on the [Amazon Product Data](https://jmcauley.ucsd.edu/data/amazon/) research datasets (McAuley et al., UCSD) -- line-delimited JSON files with product IDs (`asin`) and review text (`reviewText`).
+
 ## Tech Stack
 
 - **Apache Spark / PySpark** -- distributed text processing and TF-IDF computation
